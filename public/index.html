@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Chatty</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Chat App</a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="container">
+            <div class="shadow p-4 m-2 bg-light text-dark">
+                <h1 class=" m-2">Send Message</h1>
+                <input id="name" type="text" class="form-control m-2" placeholder="Name">
+                <textarea id="text" type="text" class="form-control m-2" placeholder="Type Your Message Here"> </textarea>
+                <button id="send" class="btn btn-success m-2">Send</button>
+            </div>
+        </div>
+        <div class="container  ">
+            <div id="messages" class="w-50 p-4">
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        const socket = io();
+        const addMessages = (message) => {
+            const messagesDiv = document.querySelector('#messages');
+            // console.log(messagesDiv);
+            messagesDiv.insertAdjacentHTML('beforeend', `<h4 class="p-3 bg-primary text-white shadow">${message.name}</h4><p class="bg-light py-2 px-3 shadow">${message.message}</P>`);
+
+        };
+        const getMessages = async() => {
+            const response = await fetch('http://localhost:3000/messages');
+            const messages = await response.json();
+            // console.log(messages);
+
+            // waits until the request completes...
+            messages.forEach(message => {
+                // console.log(message);
+                addMessages(message);
+            });
+        };
+        const postMessage = async(message) => {
+            const response = await fetch('http://localhost:3000/messages', {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message),
+            });
+            // const responseMessage = await response.json();
+            // addMessages(responseMessage);
+
+        };
+        window.onload = function(e) {
+            getMessages();
+
+            document.querySelector('#send').addEventListener('click', () => {
+                const name = document.querySelector('#name').value;
+                const text = document.querySelector('#text').value;
+                console.log(name, text);
+                const message = {
+                    name,
+                    message: text
+                };
+                postMessage(message);
+            });
+        };
+        socket.on('message', addMessages);
+    </script>
+
+</body>
+
+</html>
